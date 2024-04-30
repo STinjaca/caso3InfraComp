@@ -29,7 +29,7 @@ public class Cliente {
 					System.in));
 		
 		// se ejecuta el protocolo en el lado cliente
-		ProtocoloCliente.procesar(stdIn, stdIn, escritor);
+		ProtocoloCliente.procesar(stdIn, lector, escritor);
 		
 		// se cierran los flujos y el socket
 		stdIn.close();
