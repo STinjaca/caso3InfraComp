@@ -1,24 +1,29 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.security.Identity;
 
 public class ProtocoloCliente {
 	public static void procesar(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
 		// lee del teclado
-		System.out.println("Escriba el mensaje para enviar: ");
+		System.out.println("Escriba el Reto a enviar: ");
 		String fromUser = stdIn.readLine();
 		
 		// envia por la red
-		pOut.println(fromUser);
+		pOut.println("SECURE INIT,"+fromUser);
 		
-		String fromServer = "";
+		String fromServerCifrado = pIn.readLine();
 		
-		// lee lo que llega por la red 
-		// si lo que llega al servidor no es null
-		// observe la asignación luego la condición
+		byte[] fromServerDescifrado = CifradoAsimetrico.descifrar(Servidor.KPublica, "RSA", fromServerCifrado);
+		String descifradoClaro = new String(fromServerDescifrado, StandardCharsets.UTF_8);
 		
-		if((fromServer = pIn.readLine())!= null) {
-			System.out.println("Respuesta del servidor: " + fromServer);
+		if(!fromUser.equals(descifradoClaro)) {
+			pOut.println("ERROR");
+			return;
 		}
+		
+		pOut.println("OK");
+
 	}
 }
