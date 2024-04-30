@@ -7,12 +7,10 @@ import java.net.Socket;
 
 public class Servidor {
 	
-<<<<<<< HEAD
 	public static final int PUERTO =3400;
 	
-=======
->>>>>>> 6d918ca071b5a2d5eef0eea88b9a345b68d04e56
-	public static void main(String[] args) {
+
+	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
 		ServerSocket ss =null;
 		boolean continuar =true;
