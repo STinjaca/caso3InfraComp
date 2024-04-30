@@ -15,7 +15,7 @@ public class ProtocoloCliente {
 		
 		String fromServerCifrado = pIn.readLine();
 		
-		byte[] fromServerDescifrado = CifradoAsimetrico.descifrar(Servidor.KPublica, "RSA", fromServerCifrado);
+		byte[] fromServerDescifrado = CifradoAsimetrico.descifrar(Servidor.KPublica, "RSA", fromServerCifrado.getBytes());
 		String descifradoClaro = new String(fromServerDescifrado, StandardCharsets.UTF_8);
 		
 		if(!fromUser.equals(descifradoClaro)) {
@@ -24,6 +24,7 @@ public class ProtocoloCliente {
 		}
 		
 		pOut.println("OK");
+		System.out.println("BIEN");
 
 	}
 }
