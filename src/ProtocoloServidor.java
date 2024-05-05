@@ -95,7 +95,9 @@ public class ProtocoloServidor {
 		// 11a
 		BigInteger g_y = new BigInteger(pIn.readLine());
 		BigInteger Kmaestra = g_y.modPow(x, p);
-		System.out.println(Kmaestra.bitCount());
+		
+		byte[] digest = DigestCalculator.calcularDigest(Kmaestra.toByteArray());
+		System.out.println(digest.length);
 
 
 	}

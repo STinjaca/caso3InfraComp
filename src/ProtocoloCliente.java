@@ -105,7 +105,9 @@ public class ProtocoloCliente {
 		pOut.println(g_y);
 		// 11b
 		BigInteger Kmaestra = g_x.modPow(y, p);
-		System.out.println(Kmaestra.bitCount());
+		
+		byte[] digest = DigestCalculator.calcularDigest(Kmaestra.toByteArray());
+		System.out.println(digest.length);
 
 	}
 }
