@@ -19,7 +19,7 @@ public class Servidor {
 	
 	public Servidor() throws NoSuchAlgorithmException {
 		KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-		generator.initialize(256);
+		generator.initialize(1024);
 		KeyPair keyPair = generator.generateKeyPair();
 		
 		KPublica = keyPair.getPublic();
@@ -50,7 +50,7 @@ public class Servidor {
 						socket.getOutputStream(),true);
 				BufferedReader lector = new BufferedReader(
 						new InputStreamReader(socket.getInputStream()));
-				ProtocoloServidor.procesar(lector,escritor,this.KPrivada);
+				ProtocoloServidor.procesar(lector,escritor, KPrivada, KPublica);
 				escritor.close();
 				lector.close();
 				socket.close();

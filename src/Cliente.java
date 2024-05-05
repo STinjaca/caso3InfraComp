@@ -3,12 +3,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 public class Cliente {
 	public static final int PUERTO = 3400;
 	public static final String SERVIDOR = "localhost";
 	
-	public static void main(String[] args) throws IOException{
+	public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException{
 		Socket socket = null;
 		PrintWriter escritor = null;
 		BufferedReader lector = null;
