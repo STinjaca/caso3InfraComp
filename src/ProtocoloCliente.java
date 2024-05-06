@@ -18,7 +18,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class ProtocoloCliente {
-	public static void procesar(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut)
+	public static void procesar(int id, BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut)
 			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
 		// lee del teclado
 
@@ -51,6 +51,8 @@ public class ProtocoloCliente {
 		String fromUser = new Random().nextInt() + "";
 		pOut.println("SECURE INIT," + fromUser);
 
+		long startTime = System.nanoTime();
+
 		// 4
 		byte[] fromServerCifrado = Base64.getDecoder().decode(pIn.readLine());
 		byte[] fromServerDescifrado = CifradoAsimetrico.descifrar(kPublica, "RSA", fromServerCifrado);
@@ -61,8 +63,16 @@ public class ProtocoloCliente {
 			pOut.println("ERROR");
 			return;
 		}
-
 		pOut.println("OK");
+		long endTime = System.nanoTime();
+		long elapsedTime = endTime - startTime;
+		
+		
+		synchronized(Cliente.data){
+			Cliente.data[id][0] = elapsedTime;
+		}
+		
+		
 		System.out.println("5,OK");
 
 		// 8
@@ -103,8 +113,17 @@ public class ProtocoloCliente {
 		System.out.println("9,OK");
 
 		// 10
-		BigInteger y = new BigInteger("11");
+		startTime = System.nanoTime();
+		BigInteger y =  new BigInteger(p.bitLength(), new Random());
 		BigInteger g_y = g.modPow(y, p);
+		
+		endTime = System.nanoTime();
+		elapsedTime = endTime - startTime;
+		
+		synchronized(Cliente.data){
+			Cliente.data[id][1] = elapsedTime;
+		}
+		
 		pOut.println(g_y);
 		// 11b
 		BigInteger Kmaestra = g_x.modPow(y, p);
@@ -145,12 +164,25 @@ public class ProtocoloCliente {
 		System.out.println("16," + inputLine);
 
 		// 17
+		startTime = System.nanoTime();
 		outputLine = "CONSULTA DE ALGO GENIAL Y SUPER MAGICO";
 		outlineCifrado = CifradoSimetrico.cifrar(KAB_1, outputLine, ivSpec);
+		endTime = System.nanoTime();
+		elapsedTime = endTime - startTime;
+		
+		synchronized(Cliente.data){
+			Cliente.data[id][2] = elapsedTime;
+		}
 		pOut.println(outlineCifrado);
 
 		// 18
+		startTime = System.nanoTime();
 		String outlineHMac = DigestCalculator.calcularHMACSHA256(KAB_2, outputLine);
+		endTime = System.nanoTime();
+		elapsedTime = endTime - startTime;
+		synchronized(Cliente.data){
+			Cliente.data[id][3] = elapsedTime;
+		}
 		pOut.println(outlineHMac);
 
 		inputLine = pIn.readLine();

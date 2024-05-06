@@ -17,7 +17,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.SecretKey;
 
 public class ProtocoloServidor {
-	public static void procesar(BufferedReader pIn, PrintWriter pOut, PrivateKey kPrivada, PublicKey kPublica)
+	public static void procesar(int id, BufferedReader pIn, PrintWriter pOut, PrivateKey kPrivada, PublicKey kPublica)
 			throws IOException, InvalidKeyException, NoSuchAlgorithmException {
 		String inputLine;
 		String outputLine;
@@ -43,7 +43,14 @@ public class ProtocoloServidor {
 		inputLine = pIn.readLine();
 		String[] mensajes = inputLine.split(",");
 		// 3 Cifrar reto
+		long startTime = System.nanoTime();
 		byte[] mensajesCifrado = CifradoAsimetrico.cifrar(kPrivada, "RSA", mensajes[1]);
+		long endTime = System.nanoTime();
+		long elapsedTime = endTime - startTime;
+		synchronized(Servidor.data){
+			Servidor.data.get(id)[0] = elapsedTime;
+		}
+		
 		outputLine = Base64.getEncoder().encodeToString(mensajesCifrado);
 		pOut.println(outputLine);
 
@@ -145,15 +152,25 @@ public class ProtocoloServidor {
 
 		// 18
 		inputLine = pIn.readLine();
+		startTime = System.nanoTime();
 		inputLine = CifradoSimetrico.descifrar(KAB_1, inputLine, ivSpec);
+		elapsedTime = endTime - startTime;
+		synchronized(Servidor.data){
+			Servidor.data.get(id)[1] = elapsedTime;
+		}
 
 		String inputlineHMac = pIn.readLine();
 
+		startTime = System.nanoTime();
 		String inputlineHMacGenerado = DigestCalculator.calcularHMACSHA256(KAB_2, inputLine);
-
 		if (!inputlineHMac.equals(inputlineHMacGenerado)) {
 			pOut.println("ERROR");
 			return;
+		}
+		
+		elapsedTime = endTime - startTime;
+		synchronized(Servidor.data){
+			Servidor.data.get(id)[2] = elapsedTime;
 		}
 		pOut.println("OK");
 		System.out.println("17 18,OK");
