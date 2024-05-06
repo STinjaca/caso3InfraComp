@@ -4,16 +4,22 @@ import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.Identity;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Random;
+
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 public class ProtocoloCliente {
 	public static void procesar(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut)
-			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
 		// lee del teclado
 
 		String inputLine;
@@ -38,14 +44,11 @@ public class ProtocoloCliente {
 		RSAPublicKeySpec rsaPublicKeySpec = new RSAPublicKeySpec(modulus, publicExponent);
 		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 		PublicKey kPublica = keyFactory.generatePublic(rsaPublicKeySpec);
-		System.out.println(kPublica.toString());
 
 		// INICIO DE COMUNICACIÖN
 		// 1
-		System.out.println("Escriba el Reto a enviar: ");
-		String fromUser = stdIn.readLine();
-
 		// enviar Reto
+		String fromUser = new Random().nextInt() + "";
 		pOut.println("SECURE INIT," + fromUser);
 
 		// 4
@@ -60,7 +63,7 @@ public class ProtocoloCliente {
 		}
 
 		pOut.println("OK");
-		System.out.println("OK");
+		System.out.println("5,OK");
 
 		// 8
 
@@ -105,9 +108,69 @@ public class ProtocoloCliente {
 		pOut.println(g_y);
 		// 11b
 		BigInteger Kmaestra = g_x.modPow(y, p);
-		
-		byte[] digest = DigestCalculator.calcularDigest(Kmaestra.toByteArray());
-		System.out.println(digest.length);
 
+		byte[] digest = DigestCalculator.calcularDigest(Kmaestra.toByteArray());
+
+		// Convertir la clave y el IV a arreglos de bytes
+		byte[] KAB_1Bytes = Arrays.copyOfRange(digest, 0, 32);
+		byte[] KAB_2Bytes = Arrays.copyOfRange(digest, 32, 64);
+		byte[] ivBytes = iv.toByteArray();
+
+		SecretKeySpec KAB_1 = new SecretKeySpec(KAB_1Bytes, "AES");
+		IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+		SecretKeySpec KAB_2 = new SecretKeySpec(KAB_2Bytes, "HmacSHA256");
+
+		// 12
+		inputLine = pIn.readLine();
+		if (!inputLine.equals("CONTINUAR")) {
+			return;
+		}
+		System.out.println("12," + inputLine);
+
+		// 13
+		outputLine = "s.tinjaca@uniandes.edu.co";
+		String outlineCifrado = CifradoSimetrico.cifrar(KAB_1, outputLine, ivSpec);
+		pOut.println(outlineCifrado);
+
+		// 14
+		outputLine = "123456789";
+		outlineCifrado = CifradoSimetrico.cifrar(KAB_1, outputLine, ivSpec);
+		pOut.println(outlineCifrado);
+
+		// 16
+		inputLine = pIn.readLine();
+		if (!inputLine.equals("OK")) {
+			return;
+		}
+		System.out.println("16," + inputLine);
+
+		// 17
+		outputLine = "CONSULTA DE ALGO GENIAL Y SUPER MAGICO";
+		outlineCifrado = CifradoSimetrico.cifrar(KAB_1, outputLine, ivSpec);
+		pOut.println(outlineCifrado);
+
+		// 18
+		String outlineHMac = DigestCalculator.calcularHMACSHA256(KAB_2, outputLine);
+		pOut.println(outlineHMac);
+
+		inputLine = pIn.readLine();
+		if (!inputLine.equals("OK")) {
+			return;
+		}
+		System.out.println("17 18," + inputLine);
+
+		// 21
+		inputLine = pIn.readLine();
+		inputLine = CifradoSimetrico.descifrar(KAB_1, inputLine, ivSpec);
+
+		String inputlineHMac = pIn.readLine();
+		String inputlineHMacGenerado = DigestCalculator.calcularHMACSHA256(KAB_2, inputLine);
+
+		if (!inputlineHMac.equals(inputlineHMacGenerado)) {
+			pOut.println("ERROR");
+			return;
+		}
+		pOut.println("OK");
+		System.out.println("19 20,OK");
 	}
 }
