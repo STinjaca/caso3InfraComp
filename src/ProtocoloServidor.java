@@ -154,6 +154,7 @@ public class ProtocoloServidor {
 		inputLine = pIn.readLine();
 		startTime = System.nanoTime();
 		inputLine = CifradoSimetrico.descifrar(KAB_1, inputLine, ivSpec);
+		endTime = System.nanoTime();
 		elapsedTime = endTime - startTime;
 		synchronized(Servidor.data){
 			Servidor.data.get(id)[1] = elapsedTime;
@@ -167,7 +168,7 @@ public class ProtocoloServidor {
 			pOut.println("ERROR");
 			return;
 		}
-		
+		endTime = System.nanoTime();
 		elapsedTime = endTime - startTime;
 		synchronized(Servidor.data){
 			Servidor.data.get(id)[2] = elapsedTime;
